@@ -27,7 +27,7 @@ def main():
     st.markdown("1. Filter for the province")
     st.markdown("2. Filter for the Police Station")
     st.markdown("3. Filter for the type of crime")
-    st.markdown("4. Filter for the servity of the crime")
+    st.markdown("4. Filter for the serverity of the crime")
 
   # Sidebar for select boxes
     with st.sidebar:
