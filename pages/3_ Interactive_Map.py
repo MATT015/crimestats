@@ -90,7 +90,7 @@ def main():
     # Sidebar for select boxes
     with st.sidebar:
         # Select province
-        province_options = ['All'] + merged_df['Province'].unique().tolist()
+        province_options = merged_df['Province'].unique().tolist()
         selected_province = st.selectbox('Select Province', province_options)
 
         # Filter stations based on selected province
