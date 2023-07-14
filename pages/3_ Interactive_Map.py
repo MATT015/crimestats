@@ -4,7 +4,6 @@ import geopandas as gpd
 import pandas as pd
 from streamlit_folium import folium_static
 
-
 APP_TITLE = 'CRIME STATS INTERACTIVE MAP 🗺️ '
 
 @st.cache_data
@@ -13,10 +12,15 @@ def load_data():
     Crime_Grading = gpd.read_file('data/SouthA_CrimeStats_withGeo_overall_Prop_merge_gdf.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
     City_bounds = gpd.read_file('data/ZAF_adm2.shp')
-    Crime_Rate_of_change = pd.read_csv('data/Crime_dtata.csv')
-    Crime_Grading = Crime_Grading.merge(Crime_Rate_of_change[['Station', 'Category', 'Yearly Average']], on=['Station', 'Category'], how='left', suffixes=('', '_y'))
+    Crime_Rate_of_change = pd.read_csv('data/Crime_Statsfinal_V2.csv')
+    columns = ['Station', 'Category']
+    Crime_Grading[columns] = Crime_Grading[columns].apply(lambda x: x.str.lower())
+    Crime_Rate_of_change[columns] = Crime_Rate_of_change[columns].apply(lambda x: x.str.lower())
 
-    return Top3_CrimeStats, Prov_Bounds, City_bounds, Crime_Grading, Crime_Rate_of_change
+    # Perform the merge again
+    merged_df = Crime_Grading.merge(Crime_Rate_of_change[['Station', 'Category', 'Yearly Average']], on=['Station', 'Category'], how='left').round(2)
+
+    return Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change
 
 
 def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_col, probability_col, lat='latitude', lon='longitude'):
@@ -24,7 +28,7 @@ def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_
         station_name = row[station_col]
         crimes = row[crimes_col]
         bins = row[bin_col]
-        yearly_avg = row[yearly_avg_col]  # Added 'Yearly Average' column
+        yearly_avg = row.get(yearly_avg_col)  # Get the value or None if column doesn't exist
         probability = row[probability_col]  # Added 'Probability' column
 
         color_dict = 'green' if bins == 'Low' else ('yellow' if bins == 'Medium' else ('orange' if bins == 'High' else 'red'))
@@ -36,7 +40,8 @@ def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_
         popup_content = f'<div style="max-width: {max_width}px;">'
         popup_content += f'<b>{station_col}:</b> {station_name}<br>'
         popup_content += f'<b>{crimes_col}:</b> {crimes}<br>'
-        popup_content += f'<b>10 year % change:</b> {round(yearly_avg, 2)}<br>'
+        if yearly_avg is not None:
+            popup_content += f'<b>10 year % change:</b> {round(yearly_avg, 2)}<br>'
         popup_content += f'<b>Probability of crime:</b> {round(probability, 2)}<br>'  # Include the probability
         popup_content += '<br>'
         popup_content += 'Additional Information:'
@@ -53,11 +58,13 @@ def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_
             fill_opacity=0.6
         ).add_to(m)
 
+
 def show_sidebar_content():
     # About section
     st.sidebar.subheader("About")
     st.sidebar.write("This Streamlit app presents crime statistics on an interactive map.")
-    st.sidebar.write("Date source: https://www.saps.gov.za/.")
+    st.sidebar.write("Data source: https://www.saps.gov.za/.")
+
 
 def crime_severity_legend():
     st.sidebar.markdown("---")
@@ -75,19 +82,22 @@ def main():
     st.title(APP_TITLE)
 
     # LOAD DATA
-    Top3_CrimeStats, Prov_Bounds, City_bounds, Crime_Grading, Crime_Rate_of_change = load_data()
+    Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change = load_data()
+
+    #st.write(merged_df.head())
+    #st.write(Crime_Rate_of_change.head())
 
     # Sidebar for select boxes
     with st.sidebar:
         # Select province
-        province_options = ['All'] + Crime_Grading['Province'].unique().tolist()
+        province_options = ['All'] + merged_df['Province'].unique().tolist()
         selected_province = st.selectbox('Select Province', province_options)
 
         # Filter stations based on selected province
         if selected_province != 'All':
-            filtered_stations = Crime_Grading[Crime_Grading['Province'] == selected_province]
+            filtered_stations = merged_df[merged_df['Province'] == selected_province]
         else:
-            filtered_stations = Crime_Grading  # Display all stations
+            filtered_stations = merged_df  # Display all stations
 
         # Select station
         station_options = ['All'] + filtered_stations['Station'].unique().tolist()
@@ -95,7 +105,7 @@ def main():
 
         if selected_station != 'All':
             # Filter Crime based on selected station
-            filtered_crime = Crime_Grading[Crime_Grading['Station'] == selected_station]
+            filtered_crime = merged_df[merged_df['Station'] == selected_station]
         else:
             filtered_crime = filtered_stations  # Display all crime data
 
@@ -142,19 +152,14 @@ def main():
     if selected_province != 'All':
         add_crime_markers(m, filtered_crime, 'Station', 'Category', 'Bins', yearly_avg_col, probability_col, lat='latitude', lon='longitude')
     else:
-        add_crime_markers(m, Crime_Grading, 'Station', 'Category', 'Bins', yearly_avg_col, probability_col, lat='latitude', lon='longitude')
+        add_crime_markers(m, merged_df, 'Station', 'Category', 'Bins', yearly_avg_col, probability_col, lat='latitude', lon='longitude')
 
-# Sidebar for select boxes
+    # Sidebar for select boxes
     with st.sidebar:
         crime_severity_legend()
         show_sidebar_content()
 
-
     folium_static(m)
-
-    # Button to manually trigger re-execution
-    if st.button("Rerun"):
-        st.stop()
 
     # Save the map as an HTML file
     m.save("crime_map.html")
