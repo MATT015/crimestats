@@ -20,16 +20,16 @@ def main():
     st.header("what helped build the model")
    
 
-    Crime_Grading = gpd.read_file('data/SouthA_CrimeStats_withGeo_overall_Prop_merge_gdf.shp')
+    Crime_Grading = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
     City_bounds = gpd.read_file('data/ZAF_adm2.shp')
     Crime_Rate_of_change = pd.read_csv('data/Crime_dtata.csv')
 
     # View the dataframes
-    st.subheader("Crime_Grading")
+    st.subheader("Crime_Grading and stats")
     st.write(Crime_Grading.head())
-    st.subheader("Crime_Rate_of_change")
-    st.write(Crime_Rate_of_change.head())    
+    #st.subheader("Crime_Rate_of_change")
+    #st.write(Crime_Rate_of_change.head())    
 
 if __name__ == "__main__":
     main()
