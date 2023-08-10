@@ -12,10 +12,11 @@ def load_data():
     merged_df = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo_V4.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
     City_bounds = gpd.read_file('data/ZAF_adm2.shp')
+    Fire_Station = gpd.read_file('data/Fire_Station_V2.shp')
     Crime_Rate_of_change = pd.read_csv('data/Crime_Statsfinal_V2.csv')
     merged_df = merged_df.rename(columns={'City': 'Station','Crime cate':'Category','average ye':'Yearly Average'})
 
-    return Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change
+    return Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change,Fire_Station 
 
 def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_col, probability_col, lat='latitude', lon='longitude'):
     for index, row in crime_df.iterrows():
@@ -76,7 +77,7 @@ def main():
     st.title(APP_TITLE)
 
     # LOAD DATA
-    Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change = load_data()
+    Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change,Fire_Station = load_data()
 
     #st.write(merged_df.head())
     #st.write(Crime_Rate_of_change.head())
@@ -139,6 +140,19 @@ def main():
     # Add the GeoJSON layer to the map
     folium.GeoJson(City_bounds, name='City Bounds').add_to(m)
     folium.GeoJson(Prov_Bounds, name='Province Bounds', style_function=lambda x: {'color': 'black'}).add_to(m)
+
+    # Iterate through Fire Station locations and add them to the map
+    for index, row in Fire_Station.iterrows():
+        lat = row['lat']
+        lon = row['lng']
+        folium.Circle(
+            location=[lat, lon],
+            radius=500,  # Adjust the radius as needed
+            color='white',
+            fill=True,
+            fill_color='white',
+            fill_opacity=0.6
+        ).add_to(m)
 
     # Add crime markers
     probability_col = 'Probabilit'  # Specify the column name for 'Probability'

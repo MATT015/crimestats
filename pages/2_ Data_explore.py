@@ -29,12 +29,13 @@ def main():
 
     Crime_Grading = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo_V4.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
+    Fire_Station = gpd.read_file('data/Fire_Station_V2.shp')
 
     # View the dataframes
     st.subheader("Crime_Grading and stats")
     st.write(Crime_Grading.head())
-    #st.subheader("Crime_Rate_of_change")
-    #st.write(Crime_Rate_of_change.head())    
+    st.subheader("Fire Station location")
+    st.write(Fire_Station.head())    
 
 if __name__ == "__main__":
     main()
