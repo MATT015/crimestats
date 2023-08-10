@@ -9,19 +9,13 @@ APP_TITLE = 'CRIME STATS INTERACTIVE MAP 🗺️ '
 @st.cache_data
 def load_data():
     Top3_CrimeStats = gpd.read_file('data/Top3_SouthA_CrimeStats_withProb_gdf_top3.shp')
-    Crime_Grading = gpd.read_file('data/SouthA_CrimeStats_withGeo_overall_Prop_merge_gdf.shp')
+    merged_df = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo_V4.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
     City_bounds = gpd.read_file('data/ZAF_adm2.shp')
     Crime_Rate_of_change = pd.read_csv('data/Crime_Statsfinal_V2.csv')
-    columns = ['Station', 'Category']
-    Crime_Grading[columns] = Crime_Grading[columns].apply(lambda x: x.str.lower())
-    Crime_Rate_of_change[columns] = Crime_Rate_of_change[columns].apply(lambda x: x.str.lower())
-
-    # Perform the merge again
-    merged_df = Crime_Grading.merge(Crime_Rate_of_change[['Station', 'Category', 'Yearly Average']], on=['Station', 'Category'], how='left').round(2)
+    merged_df = merged_df.rename(columns={'City': 'Station','Crime cate':'Category','average ye':'Yearly Average'})
 
     return Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change
-
 
 def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_col, probability_col, lat='latitude', lon='longitude'):
     for index, row in crime_df.iterrows():

@@ -18,12 +18,17 @@ def main():
 
     st.title("This is the dataframe explore page")
     st.header("what helped build the model")
-   
 
-    Crime_Grading = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo.shp')
+    # Inserting a paragraph here
+    st.write("""
+    In this section, we present an analysis of crime statistics within South Africa. 
+    The data has been gathered from reliable sources and visualized to offer insights 
+    into the different crime grades. Further analysis can help in understanding the trends 
+    and possibly in developing effective a risk mearsure.
+    """)   
+
+    Crime_Grading = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo_V4.shp')
     Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
-    City_bounds = gpd.read_file('data/ZAF_adm2.shp')
-    Crime_Rate_of_change = pd.read_csv('data/Crime_dtata.csv')
 
     # View the dataframes
     st.subheader("Crime_Grading and stats")
