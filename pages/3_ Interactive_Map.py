@@ -111,22 +111,18 @@ def main():
         if selected_crime != 'All':
             # Filter Crime based on selected crime
             filtered_crime = filtered_crime[filtered_crime['Category'] == selected_crime]
-
-       if selected_province == 'All':
-            bin_sizes = ['High & Very High']
+      
+        # Select bin size
+         if selected_province == 'All':
             st.warning("Only 'High and Very High' crimes are shown when selecting 'All' provinces.",icon="⚠️")
-        else:
-            bin_sizes = ['All'] + filtered_stations['Bins'].unique().tolist()
+
+        bin_sizes = ['All'] + filtered_crime['Bins'].unique().tolist()
         selected_bin_size = st.selectbox('Select Crime Severity', bin_sizes)
 
         if selected_bin_size != 'All':
-            filtered_stations = filtered_stations[filtered_stations['Bins'] == selected_bin_size]
+            # Filter Crime based on selected bin size
+            filtered_crime = filtered_crime[filtered_crime['Bins'] == selected_bin_size]
 
-    # Display crime information for the selected station
-    selected_station_data = filtered_stations[filtered_stations['Station'] == selected_station]
-    if not selected_station_data.empty:
-        st.write('Filtered Crime Information:')
-        st.write(filtered_crime)
 
     # Create the base map
     m = folium.Map(
