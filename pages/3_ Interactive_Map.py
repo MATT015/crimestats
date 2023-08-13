@@ -84,15 +84,15 @@ def main():
 
     # Sidebar for select boxes
     with st.sidebar:
-        # Select province
-        province_options = merged_df['Province'].unique().tolist()
+       # Select province
+        province_options = ['All'] + merged_df['Province'].unique().tolist() # Include 'All' option
         selected_province = st.selectbox('Select Province', province_options)
 
         # Filter stations based on selected province
-        if selected_province != 'All':
-            filtered_stations = merged_df[merged_df['Province'] == selected_province]
+        if selected_province == 'All':
+            filtered_stations = merged_df[merged_df['Bins'] == 'Very High'] # Only select "Very High" crimes
         else:
-            filtered_stations = merged_df  # Display all stations
+            filtered_stations = merged_df[merged_df['Province'] == selected_province]
 
         # Select station
         station_options = ['All'] + filtered_stations['Station'].unique().tolist()
