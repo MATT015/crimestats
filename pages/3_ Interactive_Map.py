@@ -112,8 +112,8 @@ def main():
             # Filter Crime based on selected crime
             filtered_crime = filtered_crime[filtered_crime['Category'] == selected_crime]
       
-        # Select bin size
-         if selected_province == 'All':
+         # Select bin size
+        if selected_province == 'All':
             st.warning("Only 'High and Very High' crimes are shown when selecting 'All' provinces.",icon="⚠️")
 
         bin_sizes = ['All'] + filtered_crime['Bins'].unique().tolist()
