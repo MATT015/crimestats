@@ -112,13 +112,15 @@ def main():
             # Filter Crime based on selected crime
             filtered_crime = filtered_crime[filtered_crime['Category'] == selected_crime]
 
-        # Select bin size
-        bin_sizes = ['All'] + filtered_crime['Bins'].unique().tolist()
+       if selected_province == 'All':
+            bin_sizes = ['High & Very High']
+            st.warning("Only 'High and Very High' crimes are shown when selecting 'All' provinces.",icon="⚠️")
+        else:
+            bin_sizes = ['All'] + filtered_stations['Bins'].unique().tolist()
         selected_bin_size = st.selectbox('Select Crime Severity', bin_sizes)
 
         if selected_bin_size != 'All':
-            # Filter Crime based on selected bin size
-            filtered_crime = filtered_crime[filtered_crime['Bins'] == selected_bin_size]
+            filtered_stations = filtered_stations[filtered_stations['Bins'] == selected_bin_size]
 
     # Display crime information for the selected station
     selected_station_data = filtered_stations[filtered_stations['Station'] == selected_station]
