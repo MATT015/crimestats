@@ -139,18 +139,18 @@ def main():
     folium.GeoJson(City_bounds, name='City Bounds').add_to(m)
     folium.GeoJson(Prov_Bounds, name='Province Bounds', style_function=lambda x: {'color': 'black'}).add_to(m)
 
-    # Iterate through Fire Station locations and add them to the map
-    for index, row in Fire_Station.iterrows():
-        lat = row['lat']
-        lon = row['lng']
-        folium.Circle(
-            location=[lat, lon],
-            radius=500,  # Adjust the radius as needed
-            color='white',
-            fill=True,
-            fill_color='white',
-            fill_opacity=0.6
-        ).add_to(m)
+    # # Iterate through Fire Station locations and add them to the map
+    # for index, row in Fire_Station.iterrows():
+    #     lat = row['lat']
+    #     lon = row['lng']
+    #     folium.Circle(
+    #         location=[lat, lon],
+    #         radius=500,  # Adjust the radius as needed
+    #         color='white',
+    #         fill=True,
+    #         fill_color='white',
+    #         fill_opacity=0.6
+    #     ).add_to(m)
 
     # Add crime markers
     probability_col = 'Probabilit'  # Specify the column name for 'Probability'
