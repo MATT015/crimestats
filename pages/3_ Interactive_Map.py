@@ -166,6 +166,9 @@ def main():
         show_sidebar_content()
 
     folium_static(m)
+    # full screen
+    # folium_static(m, width=None, height=None)
+    
 
     # Save the map as an HTML file
     m.save("crime_map.html")
