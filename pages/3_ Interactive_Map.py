@@ -4,44 +4,92 @@ import geopandas as gpd
 import pandas as pd
 from streamlit_folium import folium_static
 
-APP_TITLE = 'CRIME STATS INTERACTIVE MAP 🗺️ '
+APP_TITLE = "CRIME STATS INTERACTIVE MAP 🗺"
+
+# Your Mapbox Access Token
+mapbox_access_token = "pk.eyJ1IjoibWF0dGJveHgtNTEiLCJhIjoiY2xwZ3d3bXVzMDFyeTJxdDN1bThxOWJsYSJ9.H0Ac62dg5ygowbqjtLiX8A"
+
+# Mapbox Streets v12 tile URL
+mapbox_url = f"https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{{z}}/{{x}}/{{y}}?access_token={mapbox_access_token}"
+
 
 @st.cache_data
 def load_data():
-    Top3_CrimeStats = gpd.read_file('data/Top3_SouthA_CrimeStats_withProb_gdf_top3.shp')
-    merged_df = gpd.read_file('data/SouthAfrican_CrimeStats_withGeo_V4.shp')
-    Prov_Bounds = gpd.read_file('data/ZAF_adm1.shp')
-    City_bounds = gpd.read_file('data/ZAF_adm2.shp')
-    Fire_Station = gpd.read_file('data/Fire_Station_V2.shp')
-    Crime_Rate_of_change = pd.read_csv('data/Crime_Statsfinal_V2.csv')
-    merged_df = merged_df.rename(columns={'City': 'Station','Crime cate':'Category','average ye':'Yearly Average'})
+    Top3_CrimeStats = gpd.read_file("data/Top3_SouthA_CrimeStats_withProb_gdf_top3.shp")
+    merged_df = gpd.read_file("data/SouthAfrican_CrimeStats_withGeo_V4.shp")
+    Prov_Bounds = gpd.read_file("data/ZAF_adm1.shp")
+    City_bounds = gpd.read_file("data/ZAF_adm2.shp")
+    Fire_Station = gpd.read_file("data/Fire_Station_V2.shp")
+    Crime_Rate_of_change = pd.read_csv("data/Crime_Statsfinal_V2.csv")
+    merged_df = merged_df.rename(
+        columns={
+            "City": "Station",
+            "Crime cate": "Category",
+            "average ye": "Yearly Average",
+        }
+    )
+    # Create a mapping of police stations to provinces
+    station_to_province = merged_df.set_index("Station")["Province"].to_dict()
 
-    return Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change,Fire_Station 
+    return (
+        Top3_CrimeStats,
+        Prov_Bounds,
+        City_bounds,
+        merged_df,
+        Crime_Rate_of_change,
+        Fire_Station,
+        station_to_province,
+    )
 
-def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_col, probability_col, lat='latitude', lon='longitude'):
+
+def add_crime_markers(
+    m,
+    crime_df,
+    station_col,
+    crimes_col,
+    bin_col,
+    yearly_avg_col,
+    probability_col,
+    lat="latitude",
+    lon="longitude",
+):
     for index, row in crime_df.iterrows():
         station_name = row[station_col]
         crimes = row[crimes_col]
         bins = row[bin_col]
-        yearly_avg = row.get(yearly_avg_col)  # Get the value or None if column doesn't exist
+        yearly_avg = row.get(
+            yearly_avg_col
+        )  # Get the value or None if column doesn't exist
         probability = row[probability_col]  # Added 'Probability' column
 
-        color_dict = 'green' if bins == 'Low' else ('yellow' if bins == 'Medium' else ('orange' if bins == 'High' else 'red'))
+        color_dict = (
+            "green"
+            if bins == "Low"
+            else (
+                "yellow"
+                if bins == "Medium"
+                else ("orange" if bins == "High" else "red")
+            )
+        )
 
         lat = row.geometry.centroid.y
         lon = row.geometry.centroid.x
 
-        max_width = 200
-        popup_content = f'<div style="max-width: {max_width}px;">'
-        popup_content += f'<b>{station_col}:</b> {station_name}<br>'
-        popup_content += f'<b>{crimes_col}:</b> {crimes}<br>'
+        # Set both min and max width for the popup box
+        min_width = 200  # This ensures the popup has a minimum width
+        max_width = 250  # Increase this value as needed for a wider popup box
+        popup_content = (
+            f'<div style="min-width: {min_width}px; max-width: {max_width}px;">'
+        )
+        popup_content += f"<b>{station_col}:</b> {station_name}<br>"
+        popup_content += f"<b>{crimes_col}:</b> {crimes}<br>"
         if yearly_avg is not None:
-            popup_content += f'<b>10 year % change:</b> {round(yearly_avg, 2)}<br>'
-        popup_content += f'<b>Probability of crime:</b> {round(probability, 2)}<br>'  # Include the probability
-        popup_content += '<br>'
-        popup_content += 'Additional Information:'
-        popup_content += '<br>'
-        popup_content += '</div>'
+            popup_content += f"<b>10 year % change:</b> {round(yearly_avg, 2)}<br>"
+        popup_content += f"<b>Probability of crime:</b> {round(probability, 2)}<br>"  # Include the probability
+        popup_content += "<br>"
+        popup_content += "Additional Information:"
+        popup_content += "<br>"
+        popup_content += "</div>"
 
         folium.CircleMarker(
             location=[lat, lon],
@@ -50,14 +98,16 @@ def add_crime_markers(m, crime_df, station_col, crimes_col, bin_col, yearly_avg_
             color=color_dict,
             fill=True,
             fill_color=color_dict,
-            fill_opacity=0.6
+            fill_opacity=0.6,
         ).add_to(m)
 
 
 def show_sidebar_content():
     # About section
     st.sidebar.subheader("About")
-    st.sidebar.write("This Streamlit app presents crime statistics on an interactive map.")
+    st.sidebar.write(
+        "This Streamlit app presents crime statistics on an interactive map."
+    )
     st.sidebar.write("Data source: https://www.saps.gov.za/.")
 
 
@@ -65,11 +115,74 @@ def crime_severity_legend():
     st.sidebar.markdown("---")
     st.sidebar.subheader("Crime Severity Categorical Legend")
     legend_data = {
-        'Color': ['Green', 'Yellow', 'Orange', 'Red'],
-        'Severity': ['Low', 'Medium', 'High', 'Very High']
+        "Color": ["Green", "Yellow", "Orange", "Red"],
+        "Severity": ["Low", "Medium", "High", "Very High"],
     }
     legend_table = pd.DataFrame(legend_data)
     st.sidebar.table(legend_table)
+
+
+def get_bounds_for_selection(province, station, merged_df, Prov_Bounds):
+    """Calculate the bounds for the selected province or station."""
+    if station and station != "All":
+        # For a specific station, calculate more focused bounds
+        station_data = merged_df[merged_df["Station"] == station]
+        if not station_data.empty:
+            bounds = station_data.geometry.total_bounds
+            # Optionally, you can adjust the bounds here to zoom in even closer
+            # For example, you can reduce the bounds by a certain percentage to zoom in more
+    elif province and province != "All":
+        # For a specific province, return the bounds of that province
+        bounds = Prov_Bounds[Prov_Bounds["NAME_1"] == province].geometry.total_bounds
+    else:
+        # For "All" selection, return the bounds of the entire dataset
+        bounds = merged_df.geometry.total_bounds
+    return bounds
+
+
+def get_province_bounds(province, Prov_Bounds):
+    """Get the bounding box for the selected province."""
+    if province in Prov_Bounds["NAME_1"].values:
+        return Prov_Bounds[Prov_Bounds["NAME_1"] == province].total_bounds
+    return None
+
+
+def show_sidebar_guide():
+    # Sidebar Guide or Instructions with Red Text
+    st.sidebar.title("Guide")
+    st.sidebar.markdown(
+        """
+        <style>
+        .red-text {
+            color: red;
+        }
+        </style>
+        <div class="red-text">
+            Welcome to the Crime Stats Interactive Map!<br>
+            Follow these steps to explore the data:<br>
+            1. Select a Province from the dropdown.<br>
+            2. Choose a Police Station, if desired.<br>
+            3. Pick a Crime Category to filter the data.<br>
+            4. Select Crime Severity to refine your search.<br>
+            The map will update automatically based on your selections.<br>
+            Zoom in/out or drag the map to explore different areas.
+        
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    # Add two-line space
+    st.sidebar.markdown("<br>", unsafe_allow_html=True)
+
+
+def get_bounds_for_selection(station, merged_df):
+    """Calculate the bounds for the selected police station."""
+    if station and station != "All":
+        bounds = merged_df[merged_df["Station"] == station].geometry.total_bounds
+        return bounds, True  # True indicates a specific station is selected
+    else:
+        # Return default bounds for a general view
+        return merged_df.geometry.total_bounds, False
 
 
 def main():
@@ -77,96 +190,160 @@ def main():
     st.title(APP_TITLE)
 
     # LOAD DATA
-    Top3_CrimeStats, Prov_Bounds, City_bounds, merged_df, Crime_Rate_of_change,Fire_Station = load_data()
+    (
+        Top3_CrimeStats,
+        Prov_Bounds,
+        City_bounds,
+        merged_df,
+        Crime_Rate_of_change,
+        Fire_Station,
+        station_to_province,
+    ) = load_data()
 
-    #st.write(merged_df.head())
-    #st.write(Crime_Rate_of_change.head())
+    # st.write(merged_df.head())
+    # st.write(Crime_Rate_of_change.head())
 
+    with st.sidebar:
+        show_sidebar_guide()
     # Sidebar for select boxes
     with st.sidebar:
-       # Select province
-        province_options = ['All'] + merged_df['Province'].unique().tolist() # Include 'All' option
-        selected_province = st.selectbox('Select Province', province_options)
+        # Initialize the session state for province if not already set
+        if "selected_province" not in st.session_state:
+            st.session_state.selected_province = "All"
+
+        # Province selection
+        province_options = ["All"] + sorted(merged_df["Province"].unique().tolist())
+        selected_province = st.selectbox(
+            "Select Province",
+            province_options,
+            index=province_options.index(st.session_state.selected_province),
+        )
+
+        # Update session state for province
+        st.session_state.selected_province = selected_province
 
         # Filter stations based on selected province
-        if selected_province == 'All':
-            filtered_stations = merged_df[merged_df['Bins'] == 'Very High'] # Only select "Very High" crimes
+        if selected_province != "All":
+            filtered_stations = merged_df[merged_df["Province"] == selected_province]
         else:
-            filtered_stations = merged_df[merged_df['Province'] == selected_province]
+            filtered_stations = merged_df
 
-        # Select station
-        station_options = ['All'] + filtered_stations['Station'].unique().tolist()
-        selected_station = st.selectbox('Select Station', station_options)
+        # Station selection
+        station_options = ["All"] + sorted(
+            filtered_stations["Station"].unique().tolist()
+        )
+        selected_station = st.selectbox(
+            "Select Station", station_options, disabled=not selected_province
+        )
 
-        if selected_station != 'All':
+        # Update the province based on the selected station
+        if selected_station in station_to_province and selected_station != "All":
+            st.session_state.selected_province = station_to_province[selected_station]
+
+        if selected_station != "All":
             # Filter Crime based on selected station
-            filtered_crime = merged_df[merged_df['Station'] == selected_station]
+            filtered_crime = merged_df[merged_df["Station"] == selected_station]
         else:
             filtered_crime = filtered_stations  # Display all crime data
 
         # Select crime
-        crime_options = ['All'] + filtered_crime['Category'].unique().tolist()
-        selected_crime = st.selectbox('Select Crime', crime_options)
+        crime_options = ["All"] + filtered_crime["Category"].unique().tolist()
+        selected_crime = st.selectbox("Select Crime", crime_options)
 
-        if selected_crime != 'All':
+        if selected_crime != "All":
             # Filter Crime based on selected crime
-            filtered_crime = filtered_crime[filtered_crime['Category'] == selected_crime]
-      
-         # Select bin size
-        if selected_province == 'All':
-            st.warning("Only 'High and Very High' crimes are shown when selecting 'All' provinces.",icon="⚠️")
+            filtered_crime = filtered_crime[
+                filtered_crime["Category"] == selected_crime
+            ]
 
-        bin_sizes = ['All'] + filtered_crime['Bins'].unique().tolist()
-        selected_bin_size = st.selectbox('Select Crime Severity', bin_sizes)
+        bin_sizes = ["All"] + filtered_crime["Bins"].unique().tolist()
+        selected_bin_size = st.selectbox("Select Crime Severity", bin_sizes)
 
-        if selected_bin_size != 'All':
+        if selected_bin_size != "All":
             # Filter Crime based on selected bin size
-            filtered_crime = filtered_crime[filtered_crime['Bins'] == selected_bin_size]
+            filtered_crime = filtered_crime[filtered_crime["Bins"] == selected_bin_size]
 
+        # Additional warning when 'All' provinces are selected
+        if selected_province == "All":
+            st.warning(
+                "All crime category are shown randomly because all the select boxes are defaulted to 'All'.\n\nPLEASE NOTE THAT WARNING WILL DISAPPEAR WHEN YOU CHOOSE A PROVINCE",
+                icon="⚠️",
+            )
 
-    # Create the base map
-    m = folium.Map(
-        location=[-30.5595, 22.9375],
-        zoom_start=6,
-        control_scale=True,
-        scrollWheelZoom=False,
-        tiles='OpenStreetMap',
-        width='100%',  # Adjust the map width
-        height='100%',  # Adjust the map height
-    )
+            # Initialize the map with a default view
+        m = folium.Map(
+            location=[-29.0, 24.0],  # Default coordinates for South Africa
+            zoom_start=10,  # Default zoom level for a general view
+            tiles=mapbox_url,
+            attr="Map data © OpenStreetMap contributors, CC-BY-SA, Imagery © Mapbox",
+        )
+
+        # Calculate bounds and update map view
+        bounds, is_station_selected = get_bounds_for_selection(
+            selected_station, merged_df
+        )
+
+        if is_station_selected:
+            # Update the map view for a specific station
+            zoom_level = 13  # Closer zoom level for specific station
+            m.fit_bounds(
+                [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
+            )  # Apply the calculated bounds
+            m.zoom_start = zoom_level
 
     # Add the GeoJSON layer to the map
-    folium.GeoJson(City_bounds, name='City Bounds').add_to(m)
-    folium.GeoJson(Prov_Bounds, name='Province Bounds', style_function=lambda x: {'color': 'black'}).add_to(m)
-
-    # # Iterate through Fire Station locations and add them to the map
-    # for index, row in Fire_Station.iterrows():
-    #     lat = row['lat']
-    #     lon = row['lng']
-    #     folium.Circle(
-    #         location=[lat, lon],
-    #         radius=500,  # Adjust the radius as needed
-    #         color='white',
-    #         fill=True,
-    #         fill_color='white',
-    #         fill_opacity=0.6
-    #     ).add_to(m)
+    folium.GeoJson(
+        City_bounds,
+        name="City Bounds",
+        style_function=lambda x: {"color": "blue", "weight": 2, "opacity": 1},
+    ).add_to(m)
+    folium.GeoJson(
+        Prov_Bounds,
+        name="Province Bounds",
+        style_function=lambda x: {"color": "black", "weight": 2, "opacity": 1},
+    ).add_to(m)
 
     # Add crime markers
-    probability_col = 'Probabilit'  # Specify the column name for 'Probability'
-    yearly_avg_col = 'Yearly Average'  # Specify the column name for 'Yearly Average'
-    if selected_province != 'All':
-        add_crime_markers(m, filtered_crime, 'Station', 'Category', 'Bins', yearly_avg_col, probability_col, lat='latitude', lon='longitude')
+    probability_col = "Probabilit"  # Specify the column name for 'Probability'
+    yearly_avg_col = "Yearly Average"  # Specify the column name for 'Yearly Average'
+    if selected_province != "All":
+        add_crime_markers(
+            m,
+            filtered_crime,
+            "Station",
+            "Category",
+            "Bins",
+            yearly_avg_col,
+            probability_col,
+            lat="latitude",
+            lon="longitude",
+        )
     else:
-        add_crime_markers(m, merged_df, 'Station', 'Category', 'Bins', yearly_avg_col, probability_col, lat='latitude', lon='longitude')
+        add_crime_markers(
+            m,
+            merged_df,
+            "Station",
+            "Category",
+            "Bins",
+            yearly_avg_col,
+            probability_col,
+            lat="latitude",
+            lon="longitude",
+        )
 
     # Sidebar for select boxes
     with st.sidebar:
         crime_severity_legend()
         show_sidebar_content()
 
-    folium_static(m)
-  
+    # Calculate bounds and update map view
+    bounds, is_station_selected = get_bounds_for_selection(selected_station, merged_df)
+    m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
+
+    folium_static(m, width=None, height=700)
+    # full screen
+    # folium_static(m, width=None, height=None)
+
     # Save the map as an HTML file
     m.save("crime_map.html")
 
