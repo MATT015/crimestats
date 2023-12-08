@@ -34,8 +34,8 @@ def main():
     # View the dataframes
     st.subheader("Crime_Grading and stats")
     st.write(Crime_Grading.head())
-    st.subheader("Fire Station location")
-    st.write(Fire_Station.head())    
+    # st.subheader("Fire Station location")
+    # st.write(Fire_Station.head())    
 
 if __name__ == "__main__":
     main()
