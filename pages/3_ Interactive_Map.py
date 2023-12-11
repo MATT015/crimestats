@@ -45,6 +45,7 @@ def load_data():
 def add_crime_markers(
     m,
     crime_df,
+    selected_province,
     station_col,
     crimes_col,
     bin_col,
@@ -53,6 +54,9 @@ def add_crime_markers(
     lat="latitude",
     lon="longitude",
 ):
+    # Filter for the selected province
+    if selected_province != "All":
+        crime_df = crime_df[crime_df["Province"] == selected_province]
     for index, row in crime_df.iterrows():
         station_name = row[station_col]
         crimes = row[crimes_col]
@@ -153,11 +157,11 @@ def show_sidebar_guide():
     st.sidebar.markdown(
         """
         <style>
-        .red-text {
-            color: red;
+        .how-to-guide-text {
+   
         }
         </style>
-        <div class="red-text">
+        <div class="how-to-guide-text">
             Welcome to the Crime Stats Interactive Map!<br>
             Follow these steps to explore the data:<br>
             1. Select a Province from the dropdown.<br>
@@ -207,9 +211,13 @@ def main():
         show_sidebar_guide()
     # Sidebar for select boxes
     with st.sidebar:
-        # Initialize the session state for province if not already set
+        # Initialize session states for province, station, and crime
         if "selected_province" not in st.session_state:
             st.session_state.selected_province = "All"
+        if "selected_station" not in st.session_state:
+            st.session_state.selected_station = "All"
+        if "selected_crime" not in st.session_state:
+            st.session_state.selected_crime = "All"
 
         # Province selection
         province_options = ["All"] + sorted(merged_df["Province"].unique().tolist())
@@ -219,49 +227,46 @@ def main():
             index=province_options.index(st.session_state.selected_province),
         )
 
-        # Update session state for province
-        st.session_state.selected_province = selected_province
-
-        # Filter stations based on selected province
+        # Station selection
         if selected_province != "All":
             filtered_stations = merged_df[merged_df["Province"] == selected_province]
         else:
             filtered_stations = merged_df
 
-        # Station selection
         station_options = ["All"] + sorted(
             filtered_stations["Station"].unique().tolist()
         )
-        selected_station = st.selectbox(
-            "Select Station", station_options, disabled=not selected_province
-        )
+        selected_station = st.selectbox("Select Station", station_options)
 
-        # Update the province based on the selected station
-        if selected_station in station_to_province and selected_station != "All":
-            st.session_state.selected_province = station_to_province[selected_station]
-
+        # Crime selection
         if selected_station != "All":
-            # Filter Crime based on selected station
-            filtered_crime = merged_df[merged_df["Station"] == selected_station]
+            filtered_crimes = merged_df[merged_df["Station"] == selected_station]
         else:
-            filtered_crime = filtered_stations  # Display all crime data
+            filtered_crimes = filtered_stations
 
-        # Select crime
-        crime_options = ["All"] + filtered_crime["Category"].unique().tolist()
+        crime_options = ["All"] + sorted(filtered_crimes["Category"].unique().tolist())
         selected_crime = st.selectbox("Select Crime", crime_options)
 
-        if selected_crime != "All":
-            # Filter Crime based on selected crime
-            filtered_crime = filtered_crime[
-                filtered_crime["Category"] == selected_crime
-            ]
+        # Severity selection
+        severity_options = ["All"] + sorted(filtered_crimes["Bins"].unique().tolist())
+        selected_severity = st.selectbox("Select Crime Severity", severity_options)
 
-        bin_sizes = ["All"] + filtered_crime["Bins"].unique().tolist()
-        selected_bin_size = st.selectbox("Select Crime Severity", bin_sizes)
-
-        if selected_bin_size != "All":
-            # Filter Crime based on selected bin size
-            filtered_crime = filtered_crime[filtered_crime["Bins"] == selected_bin_size]
+        # Filtering logic
+        if selected_crime == "All" and selected_severity == "All":
+            # Default to highest probability crimes
+            filtered_crime = merged_df.sort_values(
+                "Probabilit", ascending=False
+            ).drop_duplicates("Station")
+        else:
+            filtered_crime = filtered_crimes
+            if selected_crime != "All":
+                filtered_crime = filtered_crime[
+                    filtered_crime["Category"] == selected_crime
+                ]
+            if selected_severity != "All":
+                filtered_crime = filtered_crime[
+                    filtered_crime["Bins"] == selected_severity
+                ]
 
         # Additional warning when 'All' provinces are selected
         if selected_province == "All":
@@ -306,30 +311,20 @@ def main():
     # Add crime markers
     probability_col = "Probabilit"  # Specify the column name for 'Probability'
     yearly_avg_col = "Yearly Average"  # Specify the column name for 'Yearly Average'
-    if selected_province != "All":
-        add_crime_markers(
-            m,
-            filtered_crime,
-            "Station",
-            "Category",
-            "Bins",
-            yearly_avg_col,
-            probability_col,
-            lat="latitude",
-            lon="longitude",
-        )
-    else:
-        add_crime_markers(
-            m,
-            merged_df,
-            "Station",
-            "Category",
-            "Bins",
-            yearly_avg_col,
-            probability_col,
-            lat="latitude",
-            lon="longitude",
-        )
+
+    # Add crime markers
+    add_crime_markers(
+        m,
+        filtered_crime,
+        selected_province,  # pass the selected province
+        "Station",
+        "Category",
+        "Bins",
+        yearly_avg_col,
+        probability_col,
+        lat="latitude",
+        lon="longitude",
+    )
 
     # Sidebar for select boxes
     with st.sidebar:
