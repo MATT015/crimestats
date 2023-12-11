@@ -85,11 +85,11 @@ def add_crime_markers(
         popup_content = (
             f'<div style="min-width: {min_width}px; max-width: {max_width}px;">'
         )
-        popup_content += f"<b>{station_col}:</b> {station_name}<br>"
-        popup_content += f"<b>{crimes_col}:</b> {crimes}<br>"
+        popup_content += f"<b>Police Station:</b> {station_name}<br>"
+        popup_content += f"<b>Crime Category:</b> {crimes}<br>"
         if yearly_avg is not None:
             popup_content += f"<b>10 year % change:</b> {round(yearly_avg, 2)}<br>"
-        popup_content += f"<b>Probability of crime:</b> {round(probability, 2)}<br>"  # Include the probability
+        popup_content += f"<b>Highest Probability of crime %:</b> {round(probability, 2)}<br>"  # Include the probability
         popup_content += "<br>"
         popup_content += "Additional Information:"
         popup_content += "<br>"
