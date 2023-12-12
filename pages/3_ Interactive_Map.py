@@ -268,12 +268,12 @@ def main():
                     filtered_crime["Bins"] == selected_severity
                 ]
 
-        # Additional warning when 'All' provinces are selected
-        if selected_province == "All":
-            st.warning(
-                "All crime category are shown randomly because all the select boxes are defaulted to 'All'.\n\nPLEASE NOTE THAT WARNING WILL DISAPPEAR WHEN YOU CHOOSE A PROVINCE",
-                icon="⚠️",
-            )
+        # # Additional warning when 'All' provinces are selected
+        # if selected_province == "All":
+        #     st.warning(
+        #         "All crime category are shown randomly because all the select boxes are defaulted to 'All'.\n\nPLEASE NOTE THAT WARNING WILL DISAPPEAR WHEN YOU CHOOSE A PROVINCE",
+        #         icon="⚠️",
+        #     )
 
             # Initialize the map with a default view
         m = folium.Map(
