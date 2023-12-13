@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 from streamlit_folium import folium_static
 
-APP_TITLE = "CRIME STATS INTERACTIVE MAP 🗺"
+APP_TITLE = "SafeGuard Pro 🗺"
 
 # Your Mapbox Access Token
 mapbox_access_token = "pk.eyJ1IjoibWF0dGJveHgtNTEiLCJhIjoiY2xwZ3d3bXVzMDFyeTJxdDN1bThxOWJsYSJ9.H0Ac62dg5ygowbqjtLiX8A"
