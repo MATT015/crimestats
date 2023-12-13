@@ -6,6 +6,14 @@ from streamlit_folium import folium_static
 
 APP_TITLE = "SafeGuard Pro 🗺"
 
+st.set_page_config(page_icon="🗺️", layout="wide", page_title=APP_TITLE)
+# st.title(APP_TITLE)
+# Center the app title using HTML and CSS
+st.markdown(
+    f"<h1 style='text-align: center;'>{APP_TITLE}</h1>",
+    unsafe_allow_html=True,
+)
+
 # Your Mapbox Access Token
 mapbox_access_token = "pk.eyJ1IjoibWF0dGJveHgtNTEiLCJhIjoiY2xwZ3d3bXVzMDFyeTJxdDN1bThxOWJsYSJ9.H0Ac62dg5ygowbqjtLiX8A"
 
@@ -190,8 +198,6 @@ def get_bounds_for_selection(station, merged_df):
 
 
 def main():
-    st.set_page_config(page_icon="🗺️", layout="wide", page_title=APP_TITLE)
-    st.title(APP_TITLE)
 
     # LOAD DATA
     (
