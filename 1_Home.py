@@ -15,7 +15,7 @@ def main():
     
     st.set_page_config(page_icon="🏠", layout="wide")
 
-    st.header("Welcome to the Crime Investigation App")
+    st.header("Welcome to the Crime SafeGuard Pro")
     st.markdown("This app allows you to investigate local crime data and visualize it on a map.")
     st.subheader("Instructions:")
     st.markdown("1. Use the sidebar to select filters for the crime data.")

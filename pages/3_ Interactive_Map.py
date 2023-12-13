@@ -162,7 +162,7 @@ def show_sidebar_guide():
         }
         </style>
         <div class="how-to-guide-text">
-            Welcome to the Crime Stats Interactive Map!<br>
+            Welcome to the SafeGuard Pro Interactive Map!<br>
             Follow these steps to explore the data:<br>
             1. Select a Province from the dropdown.<br>
             2. Choose a Police Station, if desired.<br>
