@@ -197,7 +197,7 @@ def show_sidebar_guide():
             2. Choose a Police Station, if desired.<br>
             3. Pick a Crime Category to filter the data.<br>
             4. Select Crime Severity to refine your search.<br>
-            <strong>5. Click on the coloured circles with your cursor to see the highest crime probability for crimes reported in that police station.</strong><br>
+            <strong>5. Click on the coloured circles to see the highest crime probability per crime category.</strong><br>
             <br>
             The map will update automatically based on your selections.<br>
             Zoom in/out or drag the map to explore different areas.
