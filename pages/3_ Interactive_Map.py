@@ -115,6 +115,8 @@ def add_crime_markers(
 
 
 def show_sidebar_content():
+     # Add margin before the about section
+    st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     # About section
     st.sidebar.subheader("About")
     st.sidebar.write(
