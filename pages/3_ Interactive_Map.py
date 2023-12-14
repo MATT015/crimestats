@@ -128,12 +128,31 @@ def show_sidebar_content():
 def crime_severity_legend():
     st.sidebar.markdown("---")
     st.sidebar.subheader("Crime Severity Categorical Legend")
+
+    # Define the legend data with color codes
     legend_data = {
-        "Color": ["Green", "Yellow", "Orange", "Red"],
+        "Color": [
+            "#008000",
+            "#FFFF00",
+            "#FFA500",
+            "#FF0000",
+        ],  # Green, Yellow, Orange, Red
         "Severity": ["Low", "Medium", "High", "Very High"],
     }
     legend_table = pd.DataFrame(legend_data)
-    st.sidebar.table(legend_table)
+
+    # Create a custom HTML table for the legend with enhanced styling
+    legend_html = "<table style='border-collapse: collapse;'>"
+    for i, row in legend_table.iterrows():
+        color = row["Color"]
+        severity = row["Severity"]
+        legend_html += f"<tr>"
+        legend_html += f"<td style='background-color:{color}; width: 20px; border: 1px solid #ddd;'>&nbsp;</td>"
+        legend_html += f"<td style='padding-left: 10px; font-weight: bold; font-size: 14px;'>{severity}</td>"
+        legend_html += f"</tr>"
+    legend_html += "</table>"
+
+    st.sidebar.markdown(legend_html, unsafe_allow_html=True)
 
 
 def get_bounds_for_selection(province, station, merged_df, Prov_Bounds):
